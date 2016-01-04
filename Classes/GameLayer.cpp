@@ -178,7 +178,7 @@ void GameLayer::update(float dt)
 void GameLayer::onTouchesBegan(const std::vector<Touch*>& touches, cocos2d::Event* event)
 {
 
-  CCLOG("onTouchesBegan: %lu", touches.size());
+    CCLOG("onTouchesBegan: %lu", (unsigned long)touches.size());
 
     // This method is passed an NSSet of touches called (of course) "touches"
     // We need to convert it to an array first
@@ -213,7 +213,7 @@ void GameLayer::onTouchesBegan(const std::vector<Touch*>& touches, cocos2d::Even
 
 void GameLayer::onTouchesMoved(const std::vector<Touch*>& touches, Event* event)
 {
-  CCLOG("onTouchesMoved: %lu", touches.size());
+    CCLOG("onTouchesMoved: %lu", (unsigned long)touches.size());
     // This method is passed an NSSet of touches called (of course) "touches"
     // We need to convert it to an array first
 //    MutableArray<CCTouch *> *allTouches = this->allTouchesFromSet(touches);
@@ -250,7 +250,7 @@ void GameLayer::onTouchesMoved(const std::vector<Touch*>& touches, Event* event)
 
 void GameLayer::onTouchesEnded(const std::vector<Touch*>& touches, Event* event)
 {
-  CCLOG("onTouchesEnded: %lu", touches.size());
+    CCLOG("onTouchesEnded: %lu", (unsigned long)touches.size());
     // This method is passed an NSSet of touches called (of course) "touches"
     // We need to convert it to an array first
 //    MutableArray<CCTouch *> *allTouches = this->allTouchesFromSet(touches);
