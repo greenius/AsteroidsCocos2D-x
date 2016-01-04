@@ -3,3 +3,8 @@ build
 xcuserdata
 local.properties
 proj.android/obj/
+bin/
+gen/
+proj.android/assets/
+proj.android/libs/
+.settings/
