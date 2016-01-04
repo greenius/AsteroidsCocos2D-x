@@ -124,13 +124,26 @@ endif( WIN32 )
 
 set(GAME_SRC
   Classes/AppDelegate.cpp
-  Classes/HelloWorldScene.cpp
+  Classes/Asteroid.cpp
+  Classes/Bullet.cpp
+  Classes/ControlsLayer.cpp
+  Classes/GameLayer.cpp
+  Classes/ScoresLayer.cpp
+  Classes/Ship.cpp
+  Classes/TitleLayer.cpp
   ${PLATFORM_SPECIFIC_SRC}
 )
 
 set(GAME_HEADERS
   Classes/AppDelegate.h
-  Classes/HelloWorldScene.h
+  Classes/Asteroid.h
+  Classes/Bullet.h
+  Classes/ControlsLayer.h
+  Classes/GameConfig.h
+  Classes/GameLayer.h
+  Classes/ScoresLayer.h
+  Classes/Ship.h
+  Classes/TitleLayer.h
   ${PLATFORM_SPECIFIC_HEADERS}
 )
 
