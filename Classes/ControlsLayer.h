@@ -11,7 +11,7 @@
 #include "cocos2d.h"
 
 
-class ControlsLayer : public cocos2d::CCLayer
+class ControlsLayer : public cocos2d::Layer
 {
 public:
 
@@ -19,12 +19,12 @@ public:
 	virtual bool init();  
     
 	// there's no 'id' in cpp, so we recommand to return the exactly class pointer
-	static cocos2d::CCScene* scene();
+	static cocos2d::Scene* createScene();
     
 	// implement the "static node()" method manually
-	LAYER_NODE_FUNC(ControlsLayer);
+	CREATE_FUNC(ControlsLayer);
     
-    void backButtonAction(CCObject* pSender);
+    void backButtonAction(Ref* pSender);
     
 private:
     

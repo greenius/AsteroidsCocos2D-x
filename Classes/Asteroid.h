@@ -11,18 +11,18 @@
 
 #include "cocos2d.h"
 
-class Asteroid : public cocos2d::CCSprite
+class Asteroid : public cocos2d::Sprite
 {
 public:
-    virtual void update(cocos2d::ccTime dt);
+    virtual void update(float dt);
 	static Asteroid* spriteWithFile(const char *pszFileName);
-    bool collidesWith(CCSprite *obj);
+  bool collidesWith(cocos2d::Sprite *obj);
     
-    CC_SYNTHESIZE(cocos2d::CCPoint, velocity_, Velocity);
+    CC_SYNTHESIZE(cocos2d::Point, velocity_, Velocity);
     CC_SYNTHESIZE(int, size_, Size);
 
 	// implement the "static node()" method manually
-	LAYER_NODE_FUNC(Asteroid);
+	CREATE_FUNC(Asteroid);
 
 };
 

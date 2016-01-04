@@ -11,18 +11,18 @@
 
 #include "cocos2d.h"
 
-class Bullet : public cocos2d::CCSprite
+class Bullet : public cocos2d::Sprite
 {
 public:    
-    virtual void update(cocos2d::ccTime dt);
+    virtual void update(float dt);
 	static Bullet* spriteWithFile(const char *pszFileName);
 
     CC_SYNTHESIZE(float, distanceMoved_, DistanceMoved);
-    CC_SYNTHESIZE(cocos2d::CCPoint, velocity_, Velocity);
+    CC_SYNTHESIZE(cocos2d::Point, velocity_, Velocity);
     CC_SYNTHESIZE(bool, expired_, Expired);
 
 	// implement the "static node()" method manually
-	LAYER_NODE_FUNC(Bullet);
+	CREATE_FUNC(Bullet);
 };
 
 #endif // __BULLET_H__

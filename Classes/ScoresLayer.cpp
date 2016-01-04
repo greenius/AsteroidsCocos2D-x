@@ -11,13 +11,13 @@
 
 USING_NS_CC;
 
-CCScene* ScoresLayer::scene()
+Scene* ScoresLayer::createScene()
 {
 	// 'scene' is an autorelease object
-	CCScene *scene = CCScene::node();
+	Scene *scene = Scene::create();
 	
 	// 'layer' is an autorelease object
-	ScoresLayer *layer = ScoresLayer::node();
+	ScoresLayer *layer = ScoresLayer::create();
     
 	// add layer as a child to scene
 	scene->addChild(layer);
@@ -28,35 +28,35 @@ CCScene* ScoresLayer::scene()
 
 bool ScoresLayer::init()
 {
-	if ( !CCLayer::init() )
+	if ( !Layer::init() )
 	{
 		return false;
 	}
     
     // Get window size
-    CCSize windowSize = CCDirector::sharedDirector()->getWinSize();
+    Size windowSize = Director::getInstance()->getWinSize();
     
-    CCLabelTTF *title = CCLabelTTF::labelWithString("high scores", "Courier", 32.0);
+    Label *title = Label::createWithSystemFont("high scores", "Courier", 32.0);
     
-    title->setPosition(ccp(windowSize.width / 2, windowSize.height - title->getContentSize().height));
+    title->setPosition(Vec2(windowSize.width / 2, windowSize.height - title->getContentSize().height));
     
     // Add to layer
     this->addChild(title, 1);
     
-    CCLabelTTF *scoresLabel = CCLabelTTF::labelWithString("None", CCSizeMake(windowSize.width, windowSize.height/3), CCTextAlignmentCenter, "Courier", 16.0);
-    scoresLabel->setPosition(CCPointMake(windowSize.width/2, windowSize.height/2));
+  Label *scoresLabel = Label::createWithSystemFont("None", "Courier", 16.0, Size(windowSize.width, windowSize.height/3), TextHAlignment::CENTER);
+    scoresLabel->setPosition(Point(windowSize.width/2, windowSize.height/2));
 
-    CCMenuItemFont *backButton = CCMenuItemFont::itemFromString("back", this, menu_selector(ScoresLayer::backButtonAction));
+  MenuItemFont *backButton = MenuItemFont::create("back", std::bind(&ScoresLayer::backButtonAction, this, std::placeholders::_1));
     
-    CCMenu *menu = CCMenu::menuWithItems(backButton, NULL);
-    menu->setPosition(ccp(windowSize.width/2, scoresLabel->getPosition().y - scoresLabel->getContentSize().height));
+    Menu *menu = Menu::createWithItem(backButton);
+    menu->setPosition(Vec2(windowSize.width/2, scoresLabel->getPosition().y - scoresLabel->getContentSize().height));
     
     this->addChild(menu, 2);
     
     return true;
 }
 
-void ScoresLayer::backButtonAction(CCObject* pSender)
+void ScoresLayer::backButtonAction(Ref* pSender)
 {
-    CCDirector::sharedDirector()->replaceScene(TitleLayer::scene());
+    Director::getInstance()->replaceScene(TitleLayer::createScene());
 }

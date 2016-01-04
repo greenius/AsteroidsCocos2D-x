@@ -11,13 +11,13 @@
 
 USING_NS_CC;
 
-CCScene* ControlsLayer::scene()
+Scene* ControlsLayer::createScene()
 {
 	// 'scene' is an autorelease object
-	CCScene *scene = CCScene::node();
+	auto scene = Scene::create();
 	
 	// 'layer' is an autorelease object
-	ControlsLayer *layer = ControlsLayer::node();
+	auto layer = ControlsLayer::create();
     
 	// add layer as a child to scene
 	scene->addChild(layer);
@@ -28,40 +28,42 @@ CCScene* ControlsLayer::scene()
 
 bool ControlsLayer::init()
 {
-	if ( !CCLayer::init() )
+	if ( !Layer::init() )
 	{
 		return false;
 	}
     
     // Get window size
-    CCSize windowSize = CCDirector::sharedDirector()->getWinSize();
+    Size windowSize = Director::getInstance()->getWinSize();
     
-    CCLabelTTF *title = CCLabelTTF::labelWithString("how to play", "Courier", 32.0);
+    Label *title = Label::createWithSystemFont("how to play", "Courier", 32.0);
     
-    title->setPosition(ccp(windowSize.width / 2, windowSize.height - title->getContentSize().height));
+    title->setPosition(Vec2(windowSize.width / 2, windowSize.height - title->getContentSize().height));
     
     // Add to layer
     this->addChild(title, 1);
     
-    CCLabelTTF *controlsLabel = CCLabelTTF::labelWithString("tap = shoot\npinch = rotate\nswipe = move", 
-                                                            CCSizeMake(windowSize.width, windowSize.height / 3), 
-                                                            CCTextAlignmentCenter, 
-                                                            "Courier", 
-                                                            16.0);
-    controlsLabel->setPosition(CCPointMake(windowSize.width/2, windowSize.height/2));
+    Label *controlsLabel = Label::createWithSystemFont("tap = shoot\npinch = rotate\nswipe = move",
+                                                       "Courier",
+                                                       16.0,
+                                                       Size(windowSize.width, windowSize.height / 3),
+                                                       TextHAlignment::CENTER
+);
+
+    controlsLabel->setPosition(Point(windowSize.width/2, windowSize.height/2));
     this->addChild(controlsLabel);
     
-    CCMenuItemFont *backButton = CCMenuItemFont::itemFromString("back", this, menu_selector(ControlsLayer::backButtonAction));
+  MenuItemFont *backButton = MenuItemFont::create("back", std::bind(&ControlsLayer::backButtonAction, this, std::placeholders::_1));
     
-    CCMenu *menu = CCMenu::menuWithItems(backButton, NULL);
-    menu->setPosition(ccp(windowSize.width/2, controlsLabel->getPosition().y - controlsLabel->getContentSize().height));
+    Menu *menu = Menu::createWithItem(backButton);
+    menu->setPosition(Vec2(windowSize.width/2, controlsLabel->getPosition().y - controlsLabel->getContentSize().height));
     
     this->addChild(menu, 2);
     
     return true;
 }
 
-void ControlsLayer::backButtonAction(CCObject* pSender)
+void ControlsLayer::backButtonAction(Ref* pSender)
 {
-    CCDirector::sharedDirector()->replaceScene(TitleLayer::scene());
+    Director::getInstance()->replaceScene(TitleLayer::createScene());
 }

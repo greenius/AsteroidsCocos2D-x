@@ -23,50 +23,50 @@ Asteroid* Asteroid::spriteWithFile(const char *pszFileName)
 	return NULL;
 }
 
-void Asteroid::update(cocos2d::ccTime dt)
+void Asteroid::update(float dt)
 {
     // Rotate (based on time interval between each frame)
-    this->setRotation(this->getRotation() + (float)dt * 15);
+    this->setRotation(this->getRotation() + dt * 15);
     
     // Move
-    this->setPosition(ccp(this->getPosition().x + velocity_.x, this->getPosition().y + velocity_.y));
+    this->setPosition(Vec2(this->getPosition().x + velocity_.x, this->getPosition().y + velocity_.y));
     
-    CCSize windowSize = CCDirector::sharedDirector()->getWinSize();
+    Size windowSize = Director::getInstance()->getWinSize();
     
     // If object moves off the bounds of the screen, make it appear on the other side
     if (this->getPosition().x < 0)
     {
-        this->setPosition(ccp(windowSize.width, this->getPosition().y));
+        this->setPosition(Vec2(windowSize.width, this->getPosition().y));
     }
     else if (this->getPosition().x > windowSize.width)
     {
-        this->setPosition(ccp(0, this->getPosition().y));
+        this->setPosition(Vec2(0, this->getPosition().y));
     }
     
     if (this->getPosition().y < 0)
     {
-        this->setPosition(ccp(this->getPosition().x, windowSize.height));
+        this->setPosition(Vec2(this->getPosition().x, windowSize.height));
     }
     else if (this->getPosition().y > windowSize.height)
     {
-        this->setPosition(ccp(this->getPosition().x, 0));
+        this->setPosition(Vec2(this->getPosition().x, 0));
     }
 }
 
 // Super-basic AABB collision detection
-bool Asteroid::collidesWith(CCSprite *obj)
+bool Asteroid::collidesWith(Sprite *obj)
 {
     // Create two rectangles with CGRectMake, using each sprite's x/y position and width/height
-    CCRect ownRect = CCRectMake(this->getPosition().x - this->getContentSize().width / 2, 
+    Rect ownRect = Rect(this->getPosition().x - this->getContentSize().width / 2,
                                 this->getPosition().y - this->getContentSize().height / 2, 
                                 this->getContentSize().width, 
                                 this->getContentSize().height);
     
-    CCRect otherRect = CCRectMake(obj->getPosition().x - obj->getContentSize().width / 2, 
+    Rect otherRect = Rect(obj->getPosition().x - obj->getContentSize().width / 2,
                                 obj->getPosition().y - obj->getContentSize().height / 2, 
                                 obj->getContentSize().width, 
                                 obj->getContentSize().height);
     
     // Feed the results into CGRectIntersectsRect() which tells if the rectangles intersect (obviously)
-    return CCRect::CCRectIntersectsRect(ownRect, otherRect);
+    return ownRect.intersectsRect(otherRect);
 }

@@ -1,110 +1,100 @@
-//
-//  AsteroidsAppDelegate.cpp
-//  Asteroids
-//
-//  Created by Clawoo on 9/16/11.
-//  Copyright __MyCompanyName__ 2011. All rights reserved.
-//
-
 #include "AppDelegate.h"
-
-#include "cocos2d.h"
 #include "TitleLayer.h"
 
 USING_NS_CC;
 
-AppDelegate::AppDelegate()
-{
+static cocos2d::Size designResolutionSize = cocos2d::Size(480, 320);
+static cocos2d::Size smallResolutionSize = cocos2d::Size(480, 320);
+static cocos2d::Size mediumResolutionSize = cocos2d::Size(1024, 768);
+static cocos2d::Size largeResolutionSize = cocos2d::Size(2048, 1536);
+
+AppDelegate::AppDelegate() {
 
 }
 
-AppDelegate::~AppDelegate()
+AppDelegate::~AppDelegate() 
 {
 }
 
-bool AppDelegate::initInstance()
+//if you want a different context,just modify the value of glContextAttrs
+//it will takes effect on all platforms
+void AppDelegate::initGLContextAttrs()
 {
-    bool bRet = false;
-    do 
-    {
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
+    //set OpenGL context attributions,now can only set six attributions:
+    //red,green,blue,alpha,depth,stencil
+    GLContextAttrs glContextAttrs = {8, 8, 8, 8, 24, 8};
 
-        // Initialize OpenGLView instance, that release by CCDirector when application terminate.
-        // The HelloWorld is designed as HVGA.
-        CCEGLView * pMainWnd = new CCEGLView();
-        CC_BREAK_IF(! pMainWnd
-            || ! pMainWnd->Create(TEXT("cocos2d: Hello World"), 320, 480));
+    GLView::setGLContextAttrs(glContextAttrs);
+}
 
-#endif  // CC_PLATFORM_WIN32
-        
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
-        // OpenGLView initialized in testsAppDelegate.mm on ios platform, nothing need to do here.
-#endif  // CC_PLATFORM_IOS
+// If you want to use packages manager to install more packages, 
+// don't modify or remove this function
+static int register_all_packages()
+{
+    return 0; //flag for packages manager
+}
 
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
-		// android does not do anything
+bool AppDelegate::applicationDidFinishLaunching() {
+    // initialize director
+    auto director = Director::getInstance();
+    auto glview = director->getOpenGLView();
+    if(!glview) {
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32) || (CC_TARGET_PLATFORM == CC_PLATFORM_MAC) || (CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+        glview = GLViewImpl::createWithRect("asteroids", Rect(0, 0, designResolutionSize.width, designResolutionSize.height));
+#else
+        glview = GLViewImpl::create("asteroids");
 #endif
-        
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WOPHONE)
+        director->setOpenGLView(glview);
+    }
 
-        // Initialize OpenGLView instance, that release by CCDirector when application terminate.
-        // The HelloWorld is designed as HVGA.
-        CCEGLView* pMainWnd = new CCEGLView(this);
-        CC_BREAK_IF(! pMainWnd || ! pMainWnd->Create(320,480));
+    // turn on display FPS
+    director->setDisplayStats(true);
 
-#ifndef _TRANZDA_VM_  
-        // on wophone emulator, we copy resources files to Work7/TG3/APP/ folder instead of zip file
-        cocos2d::CCFileUtils::setResource("HelloWorld.zip");
-#endif
+    // set FPS. the default value is 1.0/60 if you don't call this
+    director->setAnimationInterval(1.0 / 60);
 
-#endif  // CC_PLATFORM_WOPHONE
+    // Set the design resolution
+    glview->setDesignResolutionSize(designResolutionSize.width, designResolutionSize.height, ResolutionPolicy::NO_BORDER);
+    Size frameSize = glview->getFrameSize();
+    // if the frame's height is larger than the height of medium size.
+    if (frameSize.height > mediumResolutionSize.height)
+    {        
+        director->setContentScaleFactor(MIN(largeResolutionSize.height/designResolutionSize.height, largeResolutionSize.width/designResolutionSize.width));
+    }
+    // if the frame's height is larger than the height of small size.
+    else if (frameSize.height > smallResolutionSize.height)
+    {        
+        director->setContentScaleFactor(MIN(mediumResolutionSize.height/designResolutionSize.height, mediumResolutionSize.width/designResolutionSize.width));
+    }
+    // if the frame's height is smaller than the height of medium size.
+    else
+    {        
+        director->setContentScaleFactor(MIN(smallResolutionSize.height/designResolutionSize.height, smallResolutionSize.width/designResolutionSize.width));
+    }
 
-        bRet = true;
-    } while (0);
-    return bRet;
-}
+    register_all_packages();
 
-bool AppDelegate::applicationDidFinishLaunching()
-{
-	// initialize director
-	CCDirector *pDirector = CCDirector::sharedDirector();
-    pDirector->setOpenGLView(&CCEGLView::sharedOpenGLView());
+    // create a scene. it's an autorelease object
+    auto scene = TitleLayer::createScene();
 
-    // enable High Resource Mode(2x, such as iphone4) and maintains low resource on other devices.
-    // pDirector->enableRetinaDisplay(true);
+    // run
+    director->runWithScene(scene);
 
-	// sets landscape mode
-	// pDirector->setDeviceOrientation(kCCDeviceOrientationLandscapeLeft);
-
-	// turn on display FPS
-	pDirector->setDisplayFPS(true);
-
-	// set FPS. the default value is 1.0/60 if you don't call this
-	pDirector->setAnimationInterval(1.0 / 60);
-
-	// create a scene. it's an autorelease object
-	CCScene *pScene = TitleLayer::scene();
-
-	// run
-	pDirector->runWithScene(pScene);
-
-	return true;
+    return true;
 }
 
 // This function will be called when the app is inactive. When comes a phone call,it's be invoked too
-void AppDelegate::applicationDidEnterBackground()
-{
-    CCDirector::sharedDirector()->pause();
+void AppDelegate::applicationDidEnterBackground() {
+    Director::getInstance()->stopAnimation();
 
-	// if you use SimpleAudioEngine, it must be pause
-	// SimpleAudioEngine::sharedEngine()->pauseBackgroundMusic();
+    // if you use SimpleAudioEngine, it must be pause
+    // SimpleAudioEngine::getInstance()->pauseBackgroundMusic();
 }
 
 // this function will be called when the app is active again
-void AppDelegate::applicationWillEnterForeground()
-{
-    CCDirector::sharedDirector()->resume();
-	
-	// if you use SimpleAudioEngine, it must resume here
-	// SimpleAudioEngine::sharedEngine()->resumeBackgroundMusic();
+void AppDelegate::applicationWillEnterForeground() {
+    Director::getInstance()->startAnimation();
+
+    // if you use SimpleAudioEngine, it must resume here
+    // SimpleAudioEngine::getInstance()->resumeBackgroundMusic();
 }

@@ -11,14 +11,14 @@
 
 #include "cocos2d.h"
 
-class Ship : public cocos2d::CCSprite
+class Ship : public cocos2d::Sprite
 {
 public:
-    virtual void update(cocos2d::ccTime dt);
+    virtual void update(float dt);
 	static Ship* spriteWithFile(const char *pszFileName);
-    CC_SYNTHESIZE(cocos2d::CCPoint, velocity_, Velocity);
+    CC_SYNTHESIZE(cocos2d::Point, velocity_, Velocity);
 	// implement the "static node()" method manually
-	LAYER_NODE_FUNC(Ship);
+	CREATE_FUNC(Ship);
 };
 
 #endif // __SHIP_H__

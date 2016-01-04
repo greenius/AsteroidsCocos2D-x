@@ -24,11 +24,11 @@ Bullet* Bullet::spriteWithFile(const char *pszFileName)
 	return NULL;
 }
 
-void Bullet::update(cocos2d::ccTime dt)
+void Bullet::update(float dt)
 {
-    this->setPosition(ccp(this->getPosition().x + velocity_.x, this->getPosition().y + velocity_.y));
+    this->setPosition(Vec2(this->getPosition().x + velocity_.x, this->getPosition().y + velocity_.y));
     
-    CCSize windowSize = CCDirector::sharedDirector()->getWinSize();
+    Size windowSize = Director::getInstance()->getWinSize();
     
     // Increment the distance moved by the velocity vector
     distanceMoved_ += sqrt(pow(velocity_.x, 2) + pow(velocity_.y, 2));
@@ -42,19 +42,19 @@ void Bullet::update(cocos2d::ccTime dt)
     // If object moves off the bounds of the screen, make it appear on the other side
     if (this->getPosition().x < 0)
     {
-        this->setPosition(ccp(windowSize.width, this->getPosition().y));
+        this->setPosition(Vec2(windowSize.width, this->getPosition().y));
     }
     else if (this->getPosition().x > windowSize.width)
     {
-        this->setPosition(ccp(0, this->getPosition().y));
+        this->setPosition(Vec2(0, this->getPosition().y));
     }
     
     if (this->getPosition().y < 0)
     {
-        this->setPosition(ccp(this->getPosition().x, windowSize.height));
+        this->setPosition(Vec2(this->getPosition().x, windowSize.height));
     }
     else if (this->getPosition().y > windowSize.height)
     {
-        this->setPosition(ccp(this->getPosition().x, 0));
+        this->setPosition(Vec2(this->getPosition().x, 0));
     }
 }

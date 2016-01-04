@@ -16,17 +16,18 @@ USING_NS_CC;
 
 GameLayer::~GameLayer()
 {
-    CC_SAFE_RELEASE_NULL(asteroids_);
-    CC_SAFE_RELEASE_NULL(bullets_);
+  this->getEventDispatcher()->removeEventListener(listener);
+  listener->release();
+  listener = nullptr;
 }
 
-CCScene* GameLayer::scene()
+Scene* GameLayer::createScene()
 {
 	// 'scene' is an autorelease object
-	CCScene *scene = CCScene::node();
+	Scene *scene = Scene::create();
 	
 	// 'layer' is an autorelease object
-	GameLayer *layer = GameLayer::node();
+	GameLayer *layer = GameLayer::create();
     
 	// add layer as a child to scene
 	scene->addChild(layer);
@@ -37,23 +38,33 @@ CCScene* GameLayer::scene()
 
 bool GameLayer::init()
 {
-	if ( !CCLayer::init() )
+	if ( !Layer::init() )
 	{
 		return false;
 	}
-    
-    setIsTouchEnabled(true);
-    
+
+  listener = EventListenerTouchAllAtOnce::create();
+//  listener->setSwallowTouches(true);
+  listener->onTouchesBegan = CC_CALLBACK_2(GameLayer::onTouchesBegan, this);
+  listener->onTouchesMoved = CC_CALLBACK_2(GameLayer::onTouchesMoved, this);
+  listener->onTouchesEnded = CC_CALLBACK_2(GameLayer::onTouchesEnded, this);
+  listener->retain();
+
+  this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, this);
+  listener->setEnabled(true); // This method is used to enable/disable the touch whenever required
+
+//    setIsTouchEnabled(true);
+
     // Get window size
-    CCSize windowSize = CCDirector::sharedDirector()->getWinSize();
+    Size windowSize = Director::getInstance()->getWinSize();
     
     // Create ship object, position it, then add to layer
     ship_ = (Ship *)Ship::spriteWithFile("ship.png");
-    ship_->setPosition(ccp(windowSize.width / 2, windowSize.height / 2));
+    ship_->setPosition(Vec2(windowSize.width / 2, windowSize.height / 2));
     this->addChild(ship_);
     
-    asteroids_ = new CCMutableArray<CCSprite *>();
-    bullets_ = new CCMutableArray<CCSprite *>();
+//    asteroids_ = new Vector<Sprite *>();
+//    bullets_ = new Vector<Sprite *>();
 
     currentLevel_ = 0;
     
@@ -64,33 +75,30 @@ bool GameLayer::init()
 	return true;
 }
 
-void GameLayer::update(ccTime dt)
+void GameLayer::update(float dt)
 {
-    if (asteroids_->count() == 0)
+    if (asteroids_.size() == 0)
     {
         currentLevel_++;
         this->startLevel();
     }
     
     // Array that keeps asteroids that need to be removed
-    CCMutableArray<CCSprite *> *asteroidsToDelete = new CCMutableArray<CCSprite *>();
-    asteroidsToDelete->autorelease();
-    
+  Vector<Sprite *> asteroidsToDelete;
+
     // Array that keeps asteroids that need to be split in half
-    CCMutableArray<CCSprite *> *asteroidsToSplit = new CCMutableArray<CCSprite *>();
-    asteroidsToSplit->autorelease();
+  Vector<Sprite *> asteroidsToSplit;
     
     // Array that keeps expired or otherwise exploded bullets that need to be removed
-    CCMutableArray<CCSprite *> *bulletsToDelete = new CCMutableArray<CCSprite *>();
-    bulletsToDelete->autorelease();
-    
-    CCMutableArray<CCSprite *>::CCMutableArrayIterator it, jt;
+    Vector<Sprite *> bulletsToDelete;
+
+    Vector<Sprite *>::iterator it, jt;
     int i=0;
     // Check for collisions vs. asteroids
-    for (it = asteroids_->begin(); it != asteroids_->end(); it++)
+    for (it = asteroids_.begin(); it != asteroids_.end(); it++)
     {
-        Asteroid *a = (Asteroid *)*it;
-        CCLog("asteroid #%d", i++);
+        Asteroid *a = (Asteroid*)*it;
+        CCLOG("asteroid #%d", i++);
         
         // Check if asteroid hits ship
         if (a->collidesWith(ship_))
@@ -101,42 +109,41 @@ void GameLayer::update(ccTime dt)
         }
         
         // Check if asteroid hits bullet, or if bullet is expired
-        for (jt = bullets_->begin(); jt != bullets_->end(); jt++)
+        for (jt = bullets_.begin(); jt != bullets_.end(); jt++)
         {
             Bullet *b = (Bullet *)*jt;
             
             if (b->getExpired())
             {
                 // Remove the bullet from organizational array
-                bulletsToDelete->addObject(b);
-                
+              bulletsToDelete.pushBack(b);
                 // Remove bullet sprite from layer
                 this->removeChild(b, false);
             }
             else if (a->collidesWith(b))
             {
                 // Remove the asteroid the bullet collided with
-                asteroidsToDelete->addObject(a);
+                asteroidsToDelete.pushBack(a);
                 
                 // Remove asteroid sprite from layer
                 this->removeChild(a, false);
                 
                 // Remove the bullet the asteroid collided with
-                bulletsToDelete->addObject(b);
+                bulletsToDelete.pushBack(b);
                 
                 // Remove bullet sprite from layer
                 this->removeChild(b, false);
 
                 if (a->getSize() < kAsteroidSmall)
                 {
-                    asteroidsToSplit->addObject(a);
+                    asteroidsToSplit.pushBack(a);
                 }
             }
         }
     }
     
     // split the larger asteroids that were hit by bullets
-    for (it = asteroidsToSplit->begin(); it != asteroidsToSplit->end(); it++)
+    for (it = asteroidsToSplit.begin(); it != asteroidsToSplit.end(); it++)
     {
         Asteroid *a = (Asteroid *)*it;
         for (int i = 0; i < 2; i++)
@@ -144,76 +151,88 @@ void GameLayer::update(ccTime dt)
             this->createAsteroidAt(a->getPosition(), a->getSize()+1);
         }
     }
-    asteroids_->removeObjectsInArray(asteroidsToDelete);
-    bullets_->removeObjectsInArray(bulletsToDelete);
+
+  for(it = asteroidsToDelete.begin(); it != asteroidsToDelete.end(); ++it)
+  {
+    asteroids_.eraseObject(*it);
+  }
+  for(it = bulletsToDelete.begin(); it != bulletsToDelete.end(); ++it)
+  {
+    bullets_.eraseObject(*it);
+  }
 }
 
-CCMutableArray<CCTouch *>* GameLayer::allTouchesFromSet(CCSet *touches)
-{
-    CCMutableArray<CCTouch *> *arr = new CCMutableArray<CCTouch *>();
-    
-    CCSetIterator it;
-    
-	for( it = touches->begin(); it != touches->end(); it++) 
-    {
-        arr->addObject((CCTouch *)*it);
-    }
-    return arr;
-}
+//MutableArray<CCTouch *>* GameLayer::allTouchesFromSet(CCSet *touches)
+//{
+//    MutableArray<CCTouch *> *arr = new MutableArray<CCTouch *>();
+//    
+//    CCSetIterator it;
+//    
+//	for( it = touches->begin(); it != touches->end(); it++) 
+//    {
+//        arr->addObject((CCTouch *)*it);
+//    }
+//    return arr;
+//}
 
-void GameLayer::ccTouchesBegan(cocos2d::CCSet* touches, cocos2d::CCEvent* event)
+void GameLayer::onTouchesBegan(const std::vector<Touch*>& touches, cocos2d::Event* event)
 {
+
+  CCLOG("onTouchesBegan: %lu", touches.size());
+
     // This method is passed an NSSet of touches called (of course) "touches"
     // We need to convert it to an array first
-    CCMutableArray<CCTouch *> *allTouches = this->allTouchesFromSet(touches);
-    CCTouch* fingerOne = (CCTouch *)allTouches->getObjectAtIndex(0);
-    
+//    MutableArray<CCTouch *> *allTouches = this->allTouchesFromSet(touches);
+//    CCTouch* fingerOne = (CCTouch *)allTouches->getObjectAtIndex(0);
+  Touch* fingerOne = touches[0];
+
     // Convert each UITouch object to a CGPoint, which has x/y coordinates we can actually use
-    CCPoint pointOne = fingerOne->locationInView(fingerOne->view());
+    Point pointOne = fingerOne->getLocationInView();
     
     // The touch points are always in "portrait" coordinates - convert to landscape
-    pointOne = CCDirector::sharedDirector()->convertToGL(pointOne);
+    pointOne = Director::getInstance()->convertToGL(pointOne);
     
     // We store the starting point of the touch so we can determine whether the touch is a swipe or tap.
     // A tap shouldn't move, so we compare the distance of the starting/ending touches, and if the distance is
     // small enough (we account for a bit of movement, just in case), the input is considered a tap
     startTouchPoint_ = pointOne;
-    if (allTouches->count() > 1)
+    if (touches.size() > 1)
     {
-        CCTouch *fingerTwo = allTouches->getObjectAtIndex(1);
+        Touch *fingerTwo = touches[1];
         
         // Convert each UITouch object to a CGPoint, which has x/y coordinates we can actually use
-        CCPoint pointTwo = fingerTwo->locationInView(fingerTwo->view());
+        Point pointTwo = fingerTwo->getLocationInView();
         
         // The touch points are always in "portrait" coordinates - convert to landscape
-        pointTwo = CCDirector::sharedDirector()->convertToGL(pointTwo);
+        pointTwo = Director::getInstance()->convertToGL(pointTwo);
         
         // Initialize the variables used to store the angle of rotation derived from the user's fingers
         currentTouchAngle_ = previousTouchAngle_ = CC_RADIANS_TO_DEGREES(atan2(pointOne.x - pointTwo.x, pointOne.y - pointTwo.y));
     }
 }
 
-void GameLayer::ccTouchesMoved(CCSet* touches, CCEvent* event)
+void GameLayer::onTouchesMoved(const std::vector<Touch*>& touches, Event* event)
 {
+  CCLOG("onTouchesMoved: %lu", touches.size());
     // This method is passed an NSSet of touches called (of course) "touches"
     // We need to convert it to an array first
-    CCMutableArray<CCTouch *> *allTouches = this->allTouchesFromSet(touches);
+//    MutableArray<CCTouch *> *allTouches = this->allTouchesFromSet(touches);
 
     // Only run the following code if there is more than one touch
-    if (allTouches->count() > 1)
+    if (touches.size() > 1)
     {
         // We're going to track the first two touches (i.e. first two fingers)
         // Create "UITouch" objects representing each touch
-        CCTouch *fingerOne = allTouches->getObjectAtIndex(0);
-        CCTouch *fingerTwo = allTouches->getObjectAtIndex(1);
+      Touch *fingerOne = touches[0];
+      Touch *fingerTwo = touches[1];
         
         // Convert each UITouch object to a CGPoint, which has x/y coordinates we can actually use
-        CCPoint pointOne = fingerOne->locationInView(fingerOne->view());
-        CCPoint pointTwo = fingerTwo->locationInView(fingerTwo->view());
+        Point pointOne = fingerOne->getLocationInView();
+        Point pointTwo = fingerTwo->getLocationInView();
         
         // The touch points are always in "portrait" coordinates - you will need to convert them if in landscape (which we are)
-        pointOne = CCDirector::sharedDirector()->convertToGL(pointOne);
-        pointTwo = CCDirector::sharedDirector()->convertToGL(pointTwo);
+        pointOne = Director::getInstance()->convertToGL(pointOne);
+        pointTwo = Director::getInstance()->convertToGL(pointTwo);
         
         // Get the angle that's created by the user's two fingers
         currentTouchAngle_ = CC_RADIANS_TO_DEGREES(atan2(pointOne.x - pointTwo.x, pointOne.y - pointTwo.y));
@@ -229,21 +248,22 @@ void GameLayer::ccTouchesMoved(CCSet* touches, CCEvent* event)
     }
 }
 
-void GameLayer::ccTouchesEnded(CCSet* touches, CCEvent* event)
+void GameLayer::onTouchesEnded(const std::vector<Touch*>& touches, Event* event)
 {
+  CCLOG("onTouchesEnded: %lu", touches.size());
     // This method is passed an NSSet of touches called (of course) "touches"
     // We need to convert it to an array first
-    CCMutableArray<CCTouch *> *allTouches = this->allTouchesFromSet(touches);
-    
-    if (allTouches->count() == 1)
+//    MutableArray<CCTouch *> *allTouches = this->allTouchesFromSet(touches);
+
+    if (touches.size() == 1)
     {
-        CCTouch* fingerOne = (CCTouch *)allTouches->getObjectAtIndex(0);
+        Touch* fingerOne = touches[0];
         
         // Convert each UITouch object to a CGPoint, which has x/y coordinates we can actually use
-        CCPoint pointOne = fingerOne->locationInView(fingerOne->view());
+        Point pointOne = fingerOne->getLocationInView();
         
         // The touch points are always in "portrait" coordinates - convert to landscape
-        pointOne = CCDirector::sharedDirector()->convertToGL(pointOne);
+        pointOne = Director::getInstance()->convertToGL(pointOne);
         
         // Set the variable that stores the ending touch point
         endTouchPoint_ = pointOne;
@@ -260,13 +280,13 @@ void GameLayer::ccTouchesEnded(CCSet* touches, CCEvent* event)
         else
         {
             // Use distance of swipe as a multiplier for the ship velocity (longer swipe, go faster)
-            ship_->setVelocity(ccp(cos(CC_DEGREES_TO_RADIANS(ship_->getRotation())) * distance / 100, 
+            ship_->setVelocity(Vec2(cos(CC_DEGREES_TO_RADIANS(ship_->getRotation())) * distance / 100, 
                                    -sin(CC_DEGREES_TO_RADIANS(ship_->getRotation())) * distance / 100));
         }
     }
 }
 
-void GameLayer::createAsteroidAt(cocos2d::CCPoint position , int size)
+void GameLayer::createAsteroidAt(cocos2d::Point position , int size)
 {
     const char *imageFile;
     
@@ -290,10 +310,10 @@ void GameLayer::createAsteroidAt(cocos2d::CCPoint position , int size)
     a->setPosition(position);
     
     // Random numbers 
-    a->setVelocity(ccp((float)(arc4random() % 100) / 100 - 1, (float)(arc4random() % 100) / 100 - 1));
+    a->setVelocity(Vec2((float)(arc4random() % 100) / 100 - 1, (float)(arc4random() % 100) / 100 - 1));
     
     // Add asteroid to organization array
-    asteroids_->addObject(a);
+    asteroids_.pushBack(a);
     
     // Add asteroid to layer
     this->addChild(a);
@@ -305,15 +325,15 @@ void GameLayer::createBullet()
     
     // Set the bullet's position by starting w/ the ship's position, then adding the rotation vector, so the bullet appears to come from the ship's nose
     
-    b->setPosition(ccp(ship_->getPosition().x + cos(CC_DEGREES_TO_RADIANS(ship_->getRotation())) * ship_->getContentSize().width, 
+    b->setPosition(Vec2(ship_->getPosition().x + cos(CC_DEGREES_TO_RADIANS(ship_->getRotation())) * ship_->getContentSize().width, 
                        ship_->getPosition().y - sin(CC_DEGREES_TO_RADIANS(ship_->getRotation())) * ship_->getContentSize().height));
     
     // Set the bullet's velocity to be in the same direction as the ship is pointing, plus whatever the ship's velocity is
-    b->setVelocity(ccp(cos(CC_DEGREES_TO_RADIANS(ship_->getRotation())) * 2 + ship_->getVelocity().x, 
+    b->setVelocity(Vec2(cos(CC_DEGREES_TO_RADIANS(ship_->getRotation())) * 2 + ship_->getVelocity().x, 
                        -sin(CC_DEGREES_TO_RADIANS(ship_->getRotation())) * 2 + ship_->getVelocity().y));
     
     // Add bullet to organizational array
-    bullets_->addObject(b);
+    bullets_.pushBack(b);
      
     // Add bullet to layer
     this->addChild(b);
@@ -325,13 +345,13 @@ void GameLayer::startLevel()
     this->resetShip();
     
     // Get window size
-    CCSize windowSize = CCDirector::sharedDirector()->getWinSize();
+    Size windowSize = Director::getInstance()->getWinSize();
     
     // Create asteroids based on level number
 	for (int i = 0; i < (currentLevel_ + 2); i++)
 	{
 		// Random numbers
-		CCPoint randomPointOnScreen = ccp((float)(arc4random() % 100) / 100 * windowSize.width, (float)(arc4random() % 100) / 100 * windowSize.height);
+		Point randomPointOnScreen = Vec2((float)(arc4random() % 100) / 100 * windowSize.width, (float)(arc4random() % 100) / 100 * windowSize.height);
         
         this->createAsteroidAt(randomPointOnScreen, kAsteroidLarge);
 	}
@@ -339,15 +359,15 @@ void GameLayer::startLevel()
 
 void GameLayer::resetShip()
 {
-    CCMutableArray<CCSprite *>::CCMutableArrayIterator it;
+  Vector<Sprite *>::iterator it;
     
-    for (it = bullets_->begin(); it != bullets_->end(); it++)
+    for (it = bullets_.begin(); it != bullets_.end(); it++)
     {
         Bullet *b = (Bullet *)*it;
         this->removeChild(b, true);
     }
     
-    bullets_->removeAllObjects();
+    bullets_.clear();
 }
 
 void GameLayer::gameOver()
@@ -355,23 +375,23 @@ void GameLayer::gameOver()
     this->resetShip();
     this->unscheduleUpdate();
     
-    ship_->setIsVisible(false);
+    ship_->setVisible(false);
     
-    CCSize windowSize = CCDirector::sharedDirector()->getWinSize();
+    Size windowSize = Director::getInstance()->getWinSize();
     
-    CCLabelTTF *title = CCLabelTTF::labelWithString("game over", "Courier", 64.0);
-    title->setPosition(ccp(windowSize.width / 2, windowSize.height/2));
+    Label *title = Label::createWithSystemFont("game over", "Courier", 64.0);
+    title->setPosition(Vec2(windowSize.width / 2, windowSize.height/2));
     this->addChild(title, 1);
     
-    CCMenuItemFont *backButton = CCMenuItemFont::itemFromString("back to title", this, menu_selector(GameLayer::backButtonAction));
+  MenuItemFont *backButton = MenuItemFont::create("back to title", std::bind(&GameLayer::backButtonAction, this, std::placeholders::_1));
     
-    CCMenu *menu = CCMenu::menuWithItems(backButton, NULL);
-    menu->setPosition(ccp(windowSize.width/2, title->getPosition().y - title->getContentSize().height));
+    Menu *menu = Menu::createWithItem(backButton);
+    menu->setPosition(Vec2(windowSize.width/2, title->getPosition().y - title->getContentSize().height));
     
     this->addChild(menu, 2);
 }
 
-void GameLayer::backButtonAction(CCObject* pSender)
+void GameLayer::backButtonAction(Ref* pSender)
 {
-    CCDirector::sharedDirector()->replaceScene(TitleLayer::scene());
+    Director::getInstance()->replaceScene(TitleLayer::createScene());
 }
