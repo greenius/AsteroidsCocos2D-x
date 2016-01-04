@@ -1,0 +1,28 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "3078EE8FF97399905A216BF559E1CCFE193D96C5",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "3078EE8FF97399905A216BF559E1CCFE193D96C5" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "8E2319DC-079F-4D6B-8615-68FB72893733",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "3078EE8FF97399905A216BF559E1CCFE193D96C5" : "..\/..\/src\/AsteroidsCocos2D-x"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "asteroids",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "proj.ios_mac\/asteroids.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "github.com:greenius\/AsteroidsCocos2D-x.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "3078EE8FF97399905A216BF559E1CCFE193D96C5"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "github.com:greenius\/AsteroidsCocos2D-x.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "3078EE8FF97399905A216BF559E1CCFE193D96C5"
+    }
+  ]
+}
